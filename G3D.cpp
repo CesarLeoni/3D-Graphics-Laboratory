@@ -22,12 +22,39 @@ bool pressed = false;
 int mouse_x;
 int mouse_y;
 
+// LAB 4 - 4.1. Definirea sistemului de iluminare
+GLfloat light_ambient[] = {1.0f, 1.0f, 1.0f, 1.0f}; //alb
+GLfloat light_diffuse[] = {1.0f, 1.0f, 1.0f, 1.0f}; //alb
+GLfloat light_specular[] = {1.0f, 1.0f, 1.0f, 1.0f}; //alb
+GLfloat mat_ambient[] = {0.5f, 0.25f, 0.25f, 1.0f}; // gri inchis
+GLfloat mat_diffuse[] = {1.0f, 0.0f, 0.0f, 1.0f}; // rosu 
+GLfloat mat_specular[] = {1.0f, 0.5f, 0.5f, 1.0f}; // rosu deschis
+GLfloat mat_shininess = 5.0f;
+GLfloat light_position[] = {0,10,0,0};
+
+// Luminare diferita - LAB 4 - 4.3. Studierea proprietãþilor surselor de luminã ºi ale materialelor.
+/*GLfloat light_ambient[] = {0.2f, 0.2f, 0.2f, 1.0f}; // Low ambient light for subtlety
+GLfloat light_diffuse[] = {1.0f, 1.0f, 1.0f, 1.0f}; // White diffuse light
+GLfloat light_specular[] = {1.0f, 1.0f, 1.0f, 1.0f}; // White specular light
+
+// Set material properties for the object
+GLfloat mat_ambient[] = {0.1f, 0.1f, 0.1f, 1.0f}; // Dark gray ambient
+GLfloat mat_diffuse[] = {1.0f, 1.0f, 1.0f, 1.0f}; // Use white or a neutral color
+GLfloat mat_specular[] = {1.0f, 1.0f, 1.0f, 1.0f}; // White specular
+GLfloat mat_shininess = 50.0f; // Shininess factor
+*/
+
+
+
 // Functia de initializare a starii OpenGL
 void Init(){
+	glClearDepth(1.0f); //adancimea maxima Z buffer
+	glEnable(GL_DEPTH_TEST); // validare Z buffer
+
 	//glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // culoare stergere negru
 
 	//LAB 1 - 1.1. Studiul culorilor în OpenGL
-	glClearColor(0.3f, 0.3f, 0.3f, 1.0f); // culoare stergere
+	glClearColor(0.4f, 0.4f, 0.4f, 1.0f); // culoare stergere
 
 	//LAB 1 - 1.2. Modurile de desenare a suprafeþelor
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); //setare implicita REDUNDANTA
@@ -39,16 +66,41 @@ void Init(){
 	//glShadeModel(GL_FLAT);//doar o culoare - rosu = prima culoare din DrawRectangleColor()
 
 	//LAB 2 - 2.5. Orientarea suprafetelor
-	glEnable(GL_CULL_FACE);//elimina fetele care au orientarea precizatã prin funcþia glCullFace
-	glCullFace(GL_BACK);//orientare spre spate
+	//glEnable(GL_CULL_FACE);//elimina fetele care au orientarea precizatã prin funcþia glCullFace
+	//glCullFace(GL_BACK);//orientare spre spate
 	//glFrontFace(GL_CCW);//setarea implicita REDUNDANTA
 	//glFrontFace(GL_CW);//parcurgerea listei de vârfuri a primitivei este în sensul acelor de ceas (ClockWise
 	//glCullFace(GL_FRONT);//orientare spre fata
 	//glFrontFace(GL_CW); glCullFace(GL_FRONT); e echivalent cu  glCullFace(GL_BACK);
 
+	//LAB 4 - 4.1. Definirea sistemului de iluminare
+	//Validarea sistemul de iluminare ºi a sursei de luminã 0
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
+	//Setarea parametrilor de culoare ai sursei de luminã ºi ai materialului curent
+	glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, mat_ambient);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_diffuse);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular);
+	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess);
 
-	glClearDepth(1.0f); //adancimea maxima Z buffer
-	glEnable(GL_DEPTH_TEST); // validare Z buffer
+	//LAB 4 - 4.2. Studeierea modelelor de umbrire - n-am inteles nu prea a mers
+	//glShadeModel(GL_SMOOTH);
+	//glShadeModel(GL_FLAT);
+
+	//LAB 4 - 4.4. Controlul poziþiei surselor de luminã
+/*	// Prima metodã: modificarea vectorului care dã direcþia sursei de luminã
+	light_position[0] = 1.41f;
+	light_position[1] = 0.0f;
+	light_position[2] = 1.41f;
+	light_position[3] = 0.0f;
+	glLightfv(GL_LIGHT0, GL_POSITION, light_position);*/
+
+	// LAB 4 - 4.5. pentru ca vectorul de normale sa fie subunitar
+	//glEnable(GL_NORMALIZE);
+	
 }
 
 void DrawRectangle(){
@@ -165,6 +217,40 @@ void DrawCubeVertices(){
 	}
 }
 
+//LAB 4 - 4.5. Modelul cu feþe indexate al unui cub cu normale
+void DrawCubeVerticesNormals(){
+	double cubeCoords[8][3]={
+		-1,-1, 1,
+		1,-1, 1,
+		1,-1,-1,
+		-1,-1,-1,
+		-1, 1, 1,
+		1, 1, 1,
+		1, 1,-1,
+		-1, 1,-1
+	};
+	int cubeIndex[6][4]={
+		3, 2, 1, 0,
+		4, 5, 6, 7,
+		0, 1, 5, 4,
+		2, 3, 7, 6,
+		1, 2, 6, 5,
+		0, 4, 7, 3
+	};
+
+	for (int i=0;i<6;i++){
+		glBegin(GL_POLYGON);
+		for (int j=0;j<4;j++){
+			int index = cubeIndex[i][j];
+			glNormal3f(cubeCoords[index][0],cubeCoords[index][1],
+				cubeCoords[index][2]);
+			glVertex3f(cubeCoords[index][0],cubeCoords[index][1],
+				cubeCoords[index][2]);
+		}
+		glEnd();
+}
+}
+
 // functie pentru desenarea axelor - pentru analiza mai clara
 void DrawAxis(){
 	glLineWidth(2.0f);
@@ -225,13 +311,31 @@ void Display(void){
 	glRotatef(-angleXv, 1.0,0.0,0.0);
 	glRotatef(-angleYv, 0.0,1.0,0.0);
 	glTranslatef(-Xv, -Yv, -Zv); // se initializeaza Zv = 5;
+	
 	// Transformare de modelare (pozitionare) obiecte din scena
 	glTranslatef(Xs,Ys,Zs);
 	glRotatef(angleYs, 0.0,1.0,0.0);
 	glRotatef(angleXs, 1.0,0.0,0.0);
 	glRotatef(angleZs, 0.0,0.0,1.0);
 
-	glColor3d(1.0, 0.0, 0.0); // culoare curenta
+		
+	//glPushMatrix();
+	// LAB 4 - 4.1. Sursa de lumina fixa (in sistemul de referinta universal)
+	//glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+	//glPopMatrix();
+
+	// LAB 4 - 4.4 controlul pozitiei surselor de lumina
+/*	// A doua metodã: introducerea transformãrilor în matricea de transformare
+	glPushMatrix();
+	light_position[0] = 0.0f;
+	light_position[1] = 0.0f;
+	light_position[2] = 1.0f;
+	light_position[3] = 0.0f;
+	glRotatef(45, 0.0, 1.0, 0.0);
+	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+	glPopMatrix();*/
+
+	//glColor3d(1.0, 0.0, 0.0); // culoare curenta
 
 	//DrawRectangle();
 	//DrawRectangleColor();
@@ -239,6 +343,7 @@ void Display(void){
 	//DrawPolygon();
 	//DrawCube();
 	//DrawCubeVertices();
+	DrawCubeVerticesNormals();
 
 	//LAB 1 - 1.4. alte figuri de desenat
 	//glutSolidSphere(1.0, 20, 20);
@@ -246,9 +351,9 @@ void Display(void){
 	//glutSolidTorus (0.1, 0.85, 64, 64);
 	//glutSolidTeapot(1.0);
 
-	glPushMatrix();
-		DrawAxis();
-	glPopMatrix();
+	//glPushMatrix();
+		//DrawAxis();
+	//glPopMatrix();
 
 	//LAB 3 - 3.5 modelarea scenelor complexe
 /*	glPushMatrix();
@@ -317,8 +422,7 @@ void Display(void){
 	glPopMatrix();
 */
 
-	glPopMatrix();
-
+	
 //	//LAB 3 - 3.5. Modelarea scenelor complexe.
 //	glPushMatrix();
 //		//Transformarea de observare
@@ -333,6 +437,7 @@ void Display(void){
 //			glPopMatrix();
 //	glPopMatrix();
 
+	glPopMatrix();
 	glFinish();
 	glutSwapBuffers(); // comutare buffer
 }
